@@ -1,7 +1,7 @@
 import os
 import tempfile
 
-from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
+from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Form
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -17,6 +17,7 @@ router = APIRouter(prefix="/documents", tags=["documents"])
 @router.post("/upload")
 async def upload_document(
     file: UploadFile = File(...),
+    subject_id: str | None = Form(default=None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -72,26 +73,34 @@ async def upload_document(
     # 4. DETECT SUBJECT FROM DOCUMENT CONTENT
     # --------------------------------------------------
 
-    subject_name = detect_subject(text)
+    # A chosen destination avoids a slow classifier call and keeps related
+    # materials together. Auto-detect remains available for hands-off uploads.
+    subject = None
+    if subject_id:
+        subject = get_owned_subject(subject_id, current_user, db)
+        subject_name = subject.name
+    else:
+        subject_name = detect_subject(text)
+        if not subject_name:
+            raise HTTPException(status_code=400, detail="Could not determine subject from document.")
 
-    if not subject_name:
-        raise HTTPException(
-            status_code=400,
-            detail="Could not determine subject from document."
-        )
-
-    # --------------------------------------------------
-    # 5. FIND EXISTING SUBJECT
-    # --------------------------------------------------
-
-    subject = (
-        db.query(Subject)
-        .filter(
-            Subject.name.ilike(subject_name),
-            Subject.owner_id == current_user.id,
-        )
-        .first()
-    )
+        # Reuse the user's existing subject, including common short-name
+        # variants, instead of splitting one course across duplicate folders.
+        normalize = lambda value: " ".join(value.casefold().replace("&", "and").split())
+        aliases = {
+            "dbms": "database management systems",
+            "database systems": "database management systems",
+            "os": "operating systems",
+            "ds": "data structures",
+            "ai": "artificial intelligence",
+            "ml": "machine learning",
+        }
+        detected_key = aliases.get(normalize(subject_name), normalize(subject_name))
+        for existing in db.query(Subject).filter(Subject.owner_id == current_user.id).all():
+            existing_key = aliases.get(normalize(existing.name), normalize(existing.name))
+            if existing_key == detected_key:
+                subject = existing
+                break
 
     # --------------------------------------------------
     # 6. CREATE SUBJECT IF IT DOESN'T EXIST

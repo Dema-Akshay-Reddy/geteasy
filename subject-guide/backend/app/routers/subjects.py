@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
@@ -127,29 +128,33 @@ def get_knowledge_graph(subject_id: str, db: Session = Depends(get_db), current_
 
 
 @router.post("/{subject_id}/learning-path")
-def generate_learning_path(
+async def generate_learning_path(
     subject_id: str,
     req: LearningPathRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
-    Learning Path Roadmap - generates an ordered roadmap of topics based on
-    student target (exam preparation, comprehensive study, or quick review).
+    Learning Path Roadmap - generates an AI-powered structured roadmap with nodes and edges.
+    Uses Groq API to create a visual learning map with prerequisites and relationships.
     """
     subject = get_owned_subject(subject_id, current_user, db)
     
-    # Retrieve materials
+    if req.target not in {"exam", "comprehensive", "quick_review"}:
+        raise HTTPException(status_code=400, detail="Target must be exam, comprehensive, or quick_review")
+
+    # Retrieve materials without blocking other API requests while embeddings run.
     query_text = f"Complete syllabus and topic order for {subject.name}"
     if req.target == "exam":
         query_text = f"Important exam topics for {subject.name}"
     elif req.target == "quick_review":
         query_text = f"Key concepts summary for {subject.name}"
     
-    results = vector_store.query(
+    results = await run_in_threadpool(
+        vector_store.query,
         question=query_text,
         subject_id=subject_id,
-        top_k=25,
+        top_k=15,
     )
     
     retrieved_chunks = results["documents"][0] if results["documents"] else []
@@ -160,26 +165,25 @@ def generate_learning_path(
             "subject_id": subject_id,
             "subject_name": subject.name,
             "target": req.target,
-            "path": [],
+            "nodes": [],
+            "edges": [],
             "message": "Upload syllabus or course materials to generate learning path"
         }
     
-    topics = llm_service.extract_topics_from_materials(retrieved_chunks, retrieved_metadatas)
-    
-    # Create ordered learning path
-    learning_path = []
-    for i, topic in enumerate(topics, start=1):
-        learning_path.append({
-            "order": i,
-            "topic": topic,
-            "estimated_hours": 2 if req.target == "quick_review" else 4,
-            "status": "not_started",
-        })
+    # Use the async LLM service to generate learning map
+    map_data = await llm_service.generate_learning_map_async(
+        subject_name=subject.name,
+        retrieved_chunks=retrieved_chunks,
+        retrieved_metadatas=retrieved_metadatas,
+        target=req.target,
+    )
     
     return {
         "subject_id": subject_id,
         "subject_name": subject.name,
         "target": req.target,
-        "path": learning_path,
-        "total_topics": len(learning_path),
+        "nodes": map_data.get("nodes", []),
+        "edges": map_data.get("edges", []),
+        "message": map_data.get("message", ""),
+        "error": map_data.get("error", "")
     }

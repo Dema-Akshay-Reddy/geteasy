@@ -34,6 +34,17 @@ def detect_subject(text: str) -> str:
     sample = text[:16000]
     fallback = _fallback_subject(text)
 
+    # Skip the network-backed classifier when the local keyword rules have a
+    # clear match. This keeps routine uploads quick and reserves the LLM for
+    # mixed or unfamiliar material.
+    lowered = sample.lower()
+    ranked = sorted(
+        ((sum(1 for keyword in keywords if keyword in lowered), name) for name, keywords in KEYWORD_SUBJECTS),
+        reverse=True,
+    )
+    if ranked and ranked[0][0] >= 2 and (len(ranked) == 1 or ranked[0][0] > ranked[1][0]):
+        return ranked[0][1]
+
     if not settings.groq_api_key:
         return fallback
 

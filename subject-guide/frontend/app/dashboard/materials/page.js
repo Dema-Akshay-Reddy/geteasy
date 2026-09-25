@@ -16,6 +16,7 @@ export default function MaterialsPage() {
   const [results, setResults] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [documentsBySubject, setDocumentsBySubject] = useState({});
+  const [uploadSubjectId, setUploadSubjectId] = useState("");
 
   useEffect(() => {
     loadSubjects();
@@ -30,6 +31,7 @@ export default function MaterialsPage() {
       if (response.ok) {
         const data = await response.json();
         setSubjects(data);
+        setUploadSubjectId((current) => current && data.some((subject) => subject.id === current) ? current : "");
         const documentEntries = await Promise.all(data.map(async (subject) => {
           const docsResponse = await fetch(`${API_BASE}/documents/subject/${subject.id}`, { headers: getAuthHeaders() });
           return [subject.id, docsResponse.ok ? await docsResponse.json() : []];
@@ -113,6 +115,7 @@ export default function MaterialsPage() {
 
       const formData = new FormData();
       formData.append("file", file);
+      if (uploadSubjectId) formData.append("subject_id", uploadSubjectId);
 
       try {
         const response = await fetch(`${API_BASE}/documents/upload`, {
@@ -233,6 +236,14 @@ export default function MaterialsPage() {
           </div>
 
           <div className="p-6">
+            <div className="mb-5 max-w-xl">
+              <label htmlFor="upload-subject" className="block text-xs font-medium text-white/60">Keep this material in</label>
+              <select id="upload-subject" value={uploadSubjectId} onChange={(event) => setUploadSubjectId(event.target.value)} disabled={uploading} className="mt-2 w-full rounded-lg border border-white/[0.08] bg-[#080a0f] px-4 py-3 text-sm text-white disabled:opacity-50">
+                <option value="">Auto-detect subject</option>
+                {subjects.map((subject) => <option key={subject.id} value={subject.id}>{subject.name}</option>)}
+              </select>
+              <p className="mt-2 text-[11px] text-white/30">Choose a course to keep these files with its materials and skip automatic subject detection.</p>
+            </div>
             {/* Drop Zone */}
             <div
               onDragOver={handleDragOver}
