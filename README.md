@@ -1,613 +1,516 @@
-# GetEasy — AI Academic Learning Workspace
+# GetEasy --- Installation & Setup Guide
 
-An AI-powered academic study assistant that allows students to upload their study material and ask questions based on the uploaded content.
+GetEasy is a full-stack AI-powered study assistant for uploading study
+materials, explaining topics, solving questions, generating learning
+paths, viewing knowledge maps and analytics, and exporting study guides.
 
-GetEasy automatically detects subjects, processes academic documents, stores their content for semantic retrieval, and generates AI-powered answers using the retrieved study material.
+This README explains how to install and run the website locally.
 
-The application uses:
+## 1. Prerequisites
 
-- **Next.js** for the browser interface
-- **FastAPI** for the backend API
-- **PostgreSQL** for application metadata
-- **ChromaDB** for vector storage and semantic retrieval
-- **Sentence Transformers** for local embeddings
-- **Groq** for AI-powered answer generation
+Install:
 
-## Features
+-   Python 3.10+
+-   Node.js 18+
+-   npm
+-   Docker Desktop
+-   Git
+-   A Groq API key
 
-- Upload multiple academic documents
-- Upload complete folders of study material
-- Automatic subject detection
-- Automatic subject organization
-- PDF, DOCX and PPTX support
-- Document text extraction
-- Text chunking
-- Local sentence-transformer embeddings
-- Semantic search using ChromaDB
-- AI-powered question answering
-- Answers grounded in uploaded study material
-- Source document identification
-- Markdown-formatted AI responses
-- Modern responsive learning interface
+Verify:
 
-## Prerequisites
+``` bash
+python --version
+node --version
+npm --version
+docker --version
+git --version
+```
 
-Install the following before starting:
+## 2. Clone the Repository
 
-- Python 3.11 or newer
-- Node.js 18 or newer
-- npm
-- PostgreSQL
-- Git
-- A Groq API key
-
-## Installation — Windows
-
-### 1. Clone the repository
-
-Open **PowerShell** and run:
-
-```powershell
+``` bash
 git clone https://github.com/kushal7xn/GetEasy-week3-4.git
 cd GetEasy-week3-4
+git checkout forui
+cd subject-guide
 ```
 
-### 2. Start PostgreSQL
+The application contains:
 
-Make sure PostgreSQL is installed and running.
-
-Create a database named:
-
-```text
-geteasy
-```
-
-Using PostgreSQL:
-
-```sql
-CREATE DATABASE geteasy;
-```
-
-The default database configuration is:
-
-```text
-Host: localhost
-Port: 5432
-Database: geteasy
-User: postgres
-```
-
-If you are using a local PostgreSQL installation, make sure the PostgreSQL service is running before starting the backend.
-
-### 3. Configure the backend
-
-Move into the backend directory:
-
-```powershell
-cd backend
-```
-
-Create a Python 3.11 virtual environment:
-
-```powershell
-py -3.11 -m venv venv
-```
-
-Activate the virtual environment:
-
-```powershell
-.\venv\Scripts\Activate.ps1
-```
-
-If PowerShell blocks virtual-environment activation, run:
-
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-```
-
-Then activate the environment again:
-
-```powershell
-.\venv\Scripts\Activate.ps1
-```
-
-You should now see:
-
-```text
-(venv)
-```
-
-at the beginning of your PowerShell prompt.
-
-### 4. Upgrade pip
-
-```powershell
-python -m pip install --upgrade pip
-```
-
-### 5. Install backend dependencies
-
-```powershell
-python -m pip install -r requirements.txt
-```
-
-The first installation may take several minutes because packages such as `sentence-transformers` and their dependencies can be large.
-
-### 6. Configure environment variables
-
-Copy the example environment file:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-Open the `.env` file:
-
-```powershell
-notepad .env
-```
-
-Set the following values:
-
-```env
-DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/geteasy
-GROQ_API_KEY=YOUR_GROQ_API_KEY
-GROQ_MODEL=openai/gpt-oss-20b
-CHROMA_PERSIST_DIR=./chroma_data
-```
-
-Replace:
-
-```text
-YOUR_PASSWORD
-```
-
-with your PostgreSQL password.
-
-Replace:
-
-```text
-YOUR_GROQ_API_KEY
-```
-
-with your Groq API key.
-
-**Do not commit or share your `.env` file or your API key.**
-
-### 7. Start the backend
-
-Make sure the virtual environment is active and run:
-
-```powershell
-python -m uvicorn app.main:app --reload
-```
-
-The backend will run at:
-
-```text
-http://localhost:8000
-```
-
-FastAPI API documentation is available at:
-
-```text
-http://localhost:8000/docs
-```
-
-Leave this PowerShell window running.
-
----
-
-## 8. Install the frontend
-
-Open a **second PowerShell window**.
-
-Go to the project directory:
-
-```powershell
-cd GetEasy-week3-4
-```
-
-Move into the frontend:
-
-```powershell
-cd frontend
-```
-
-Install the Node.js dependencies:
-
-```powershell
-npm install
-```
-
-### 9. Configure the frontend
-
-Create a file named:
-
-```text
-.env.local
-```
-
-inside the `frontend` directory.
-
-Add:
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8000
-```
-
-This tells the frontend where the FastAPI backend is running.
-
-### 10. Start the frontend
-
-Run:
-
-```powershell
-npm run dev
-```
-
-The frontend will run at:
-
-```text
-http://localhost:3000
-```
-
-Open the URL in your browser.
-
----
-
-## Running the application
-
-You need **two PowerShell windows** running at the same time.
-
-### Backend
-
-```powershell
-cd GetEasy-week3-4\backend
-.\venv\Scripts\Activate.ps1
-python -m uvicorn app.main:app --reload
-```
-
-### Frontend
-
-```powershell
-cd GetEasy-week3-4\frontend
-npm run dev
-```
-
-Then open:
-
-```text
-http://localhost:3000
-```
-
----
-
-## Using GetEasy
-
-### 1. Upload study material
-
-Upload your academic documents through the GetEasy interface.
-
-Supported formats:
-
-```text
-.pdf
-.docx
-.pptx
-```
-
-You can upload multiple files or an entire folder.
-
-### 2. Automatic subject detection
-
-GetEasy analyzes the uploaded material and automatically determines the appropriate subject.
-
-For example:
-
-```text
-Linux commands
-Shell scripting
-AWK
-SED
-GREP
-        ↓
-Linux Programming
-```
-
-Content such as:
-
-```text
-Processes
-CPU Scheduling
-Deadlocks
-Synchronization
-Memory Management
-        ↓
-Operating Systems
-```
-
-can be identified as **Operating Systems**.
-
-### 3. Document processing
-
-After a document is uploaded, GetEasy:
-
-1. Extracts the text
-2. Splits the content into chunks
-3. Generates embeddings
-4. Stores the chunks and embeddings in ChromaDB
-5. Associates the document with the detected subject
-
-### 4. Ask questions
-
-Select a subject and ask questions about your uploaded material.
-
-Example:
-
-```text
-What is a deadlock?
-```
-
-```text
-Explain the four necessary conditions for deadlock.
-```
-
-```text
-What are the important exam topics in this material?
-```
-
-```text
-Explain CPU scheduling with examples.
-```
-
-### 5. AI-powered answers
-
-When a question is asked, GetEasy searches the uploaded material for relevant content and provides the retrieved information to the Groq-powered AI model.
-
-The answer is generated using the relevant study material instead of simply answering from unrelated general knowledge.
-
----
-
-## API Documentation
-
-Once the backend is running, open:
-
-```text
-http://localhost:8000/docs
-```
-
-FastAPI provides an interactive interface for testing the available API endpoints.
-
-Main functionality includes:
-
-```text
-POST /subjects
-POST /documents/upload
-POST /query
-```
-
----
-
-## Project Structure
-
-```text
-GetEasy-week3-4/
-│
+``` text
+subject-guide/
 ├── backend/
 │   ├── app/
-│   │   ├── models/
-│   │   │   ├── __init__.py
-│   │   │   └── models.py
-│   │   │
-│   │   ├── routers/
-│   │   │   ├── __init__.py
-│   │   │   ├── documents.py
-│   │   │   ├── query.py
-│   │   │   └── subjects.py
-│   │   │
-│   │   ├── services/
-│   │   │   ├── __init__.py
-│   │   │   ├── document_processor.py
-│   │   │   ├── llm_service.py
-│   │   │   ├── subject_detector.py
-│   │   │   └── vector_store.py
-│   │   │
-│   │   ├── config.py
-│   │   ├── database.py
-│   │   └── main.py
-│   │
-│   ├── .env.example
 │   ├── requirements.txt
-│   └── package.json
-│
+│   └── .env.example
 ├── frontend/
 │   ├── app/
-│   │   ├── globals.css
-│   │   ├── layout.js
-│   │   └── page.js
-│   │
 │   ├── public/
-│   │   └── logo.png
-│   │
-│   ├── package.json
-│   ├── package-lock.json
-│   ├── postcss.config.js
-│   └── tailwind.config.js
-│
-├── .gitignore
+│   └── package.json
 └── README.md
 ```
 
----
+Architecture:
 
-## Environment Variables
+``` text
+Browser
+   |
+   v
+Next.js Frontend :3000
+   |
+   v
+FastAPI Backend :8000
+   |------ PostgreSQL :5432
+   |------ ChromaDB
+   `------ Groq API
+```
+
+## 3. Start PostgreSQL
+
+Make sure Docker Desktop is running.
+
+``` bash
+docker run --name subject-guide-db ^
+  -e POSTGRES_USER=postgres ^
+  -e POSTGRES_PASSWORD=postgres ^
+  -e POSTGRES_DB=subject_guide ^
+  -p 5432:5432 ^
+  -d postgres:16
+```
+
+For macOS/Linux, use:
+
+``` bash
+docker run --name subject-guide-db   -e POSTGRES_USER=postgres   -e POSTGRES_PASSWORD=postgres   -e POSTGRES_DB=subject_guide   -p 5432:5432   -d postgres:16
+```
+
+Check:
+
+``` bash
+docker ps
+```
+
+If the container already exists:
+
+``` bash
+docker start subject-guide-db
+```
+
+## 4. Backend Setup
+
+Open a terminal:
+
+``` bash
+cd subject-guide/backend
+python -m venv venv
+```
+
+### Windows PowerShell
+
+``` powershell
+.env\Scripts\Activate.ps1
+```
+
+If PowerShell blocks activation:
+
+``` cmd
+venv\Scriptsctivate
+```
+
+### macOS/Linux
+
+``` bash
+source venv/bin/activate
+```
+
+Install dependencies:
+
+``` bash
+pip install -r requirements.txt
+```
+
+## 5. Configure Backend
+
+Create `.env` from `.env.example`.
+
+Windows:
+
+``` powershell
+Copy-Item .env.example .env
+```
+
+macOS/Linux:
+
+``` bash
+cp .env.example .env
+```
+
+Use:
+
+``` env
+DATABASE_URL=postgresql+psycopg2://postgres:postgres@localhost:5432/subject_guide
+
+CHROMA_PERSIST_DIR=./chroma_data
+ANONYMIZED_TELEMETRY=False
+
+GROQ_API_KEY=YOUR_GROQ_API_KEY
+GROQ_MODEL=openai/gpt-oss-20b
+
+JWT_SECRET_KEY=CHANGE_THIS_TO_A_LONG_RANDOM_SECRET
+JWT_ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
+
+FRONTEND_ORIGIN=http://localhost:3000
+```
+
+Replace `YOUR_GROQ_API_KEY` with your real Groq API key.
+
+Do not commit `.env` to GitHub.
+
+## 6. Start Backend
+
+From `subject-guide/backend`:
+
+``` bash
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+Backend:
+
+``` text
+http://127.0.0.1:8000
+```
+
+Swagger API documentation:
+
+``` text
+http://127.0.0.1:8000/docs
+```
+
+Keep this terminal running.
+
+## 7. Frontend Setup
+
+Open a new terminal:
+
+``` bash
+cd subject-guide/frontend
+npm install
+```
+
+Create:
+
+``` text
+frontend/.env.local
+```
+
+Add:
+
+``` env
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
+```
+
+Start the frontend:
+
+``` bash
+npm run dev
+```
+
+Open:
+
+``` text
+http://localhost:3000
+```
+
+## 8. Verify the Installation
 
 ### Backend
 
-```env
-DATABASE_URL=
-GROQ_API_KEY=
-GROQ_MODEL=
-CHROMA_PERSIST_DIR=
+Open:
+
+``` text
+http://127.0.0.1:8000/docs
 ```
+
+FastAPI Swagger should appear.
 
 ### Frontend
 
-```env
-NEXT_PUBLIC_API_URL=
+Open:
+
+``` text
+http://localhost:3000
 ```
 
-Never commit:
+### Application test
 
-```text
-.env
-.env.local
-API keys
-Database passwords
-venv/
-node_modules/
-.next/
-chroma_data/
+1.  Register a new account.
+2.  Log in.
+3.  Open the dashboard.
+4.  Upload a PDF, DOCX or PPTX.
+5.  Select a subject.
+6.  Try Topic Explainer.
+7.  Try Question Solver.
+8.  Check Analytics.
+9.  Try Knowledge Map.
+10. Try Study Guide Export.
+
+A valid `GROQ_API_KEY` is required for the AI features.
+
+## 9. Supported Documents
+
+GetEasy supports common study-material formats including:
+
+``` text
+PDF
+DOCX
+PPTX
 ```
 
-The project's `.gitignore` is configured to exclude these files.
+The first upload can be slower because the embedding model may need to
+initialize/download.
 
----
+## 10. Starting the Project Later
 
-## Troubleshooting
+After the initial installation:
 
-### PowerShell blocks virtual-environment activation
+### Terminal 1
 
-Run:
+``` bash
+docker start subject-guide-db
+```
 
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+### Terminal 2
+
+``` bash
+cd subject-guide/backend
+```
+
+Windows:
+
+``` powershell
+.env\Scripts\Activate.ps1
 ```
 
 Then:
 
-```powershell
-.\venv\Scripts\Activate.ps1
+``` bash
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-### `ModuleNotFoundError`
+### Terminal 3
 
-Make sure the virtual environment is active:
-
-```powershell
-.\venv\Scripts\Activate.ps1
-```
-
-Then reinstall the dependencies:
-
-```powershell
-python -m pip install -r requirements.txt
-```
-
-### Backend does not start
-
-Check that:
-
-- PostgreSQL is running
-- The `geteasy` database exists
-- `DATABASE_URL` is correct
-- `GROQ_API_KEY` is configured
-- The Python virtual environment is active
-
-### Frontend cannot connect to backend
-
-Make sure the backend is running:
-
-```powershell
-python -m uvicorn app.main:app --reload
-```
-
-Check `frontend/.env.local`:
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8000
-```
-
-Restart the frontend:
-
-```powershell
+``` bash
+cd subject-guide/frontend
 npm run dev
 ```
 
-### Groq model error
+Open:
 
-Check `backend/.env`:
-
-```env
-GROQ_MODEL=openai/gpt-oss-20b
+``` text
+http://localhost:3000
 ```
 
-Then restart the backend.
+## 11. Common Problems
 
-### First upload takes a long time
+### `python` is not recognized
 
-The first upload may take longer because the Sentence Transformer embedding model needs to be initialized/downloaded locally.
+Install Python and enable the PATH option during installation.
 
-Later uploads should be faster.
+### `npm` is not recognized
 
----
+Install Node.js and restart the terminal.
 
-## Development
+### PostgreSQL connection error
 
-### Backend
+Check:
 
-```powershell
+``` bash
+docker ps
+```
+
+If necessary:
+
+``` bash
+docker start subject-guide-db
+```
+
+Confirm:
+
+``` env
+DATABASE_URL=postgresql+psycopg2://postgres:postgres@localhost:5432/subject_guide
+```
+
+### `Failed to fetch`
+
+Make sure the backend is running on:
+
+``` text
+http://127.0.0.1:8000
+```
+
+and the frontend has:
+
+``` env
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
+```
+
+Restart Next.js after changing `.env.local`.
+
+### CORS error
+
+Backend `.env` should contain:
+
+``` env
+FRONTEND_ORIGIN=http://localhost:3000
+```
+
+Restart FastAPI after changing it.
+
+### AI request fails
+
+Check:
+
+``` env
+GROQ_API_KEY=your_actual_key
+```
+
+and verify that the selected Groq model is available to your account.
+
+### Port 8000 is busy
+
+Use another backend port:
+
+``` bash
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8001
+```
+
+Then change:
+
+``` env
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8001
+```
+
+### Port 3000 is busy
+
+Run:
+
+``` bash
+npm run dev -- -p 3001
+```
+
+Then change the backend CORS setting to:
+
+``` env
+FRONTEND_ORIGIN=http://localhost:3001
+```
+
+## 12. Stop the Application
+
+Stop frontend/backend with:
+
+``` text
+Ctrl + C
+```
+
+Stop PostgreSQL:
+
+``` bash
+docker stop subject-guide-db
+```
+
+## 13. Production Build
+
+Frontend:
+
+``` bash
+cd subject-guide/frontend
+npm run build
+npm run start
+```
+
+Backend:
+
+``` bash
+cd subject-guide/backend
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+For production, use hosted PostgreSQL, HTTPS, secure secrets, restricted
+CORS, and your hosting provider's environment variables.
+
+## 14. Security
+
+Never commit:
+
+``` text
+.env
+.env.local
+```
+
+Never expose:
+
+``` text
+GROQ_API_KEY
+JWT_SECRET_KEY
+DATABASE_URL
+```
+
+Use a strong random JWT secret in production.
+
+## Quick Start
+
+If Python, Node.js and Docker are already installed:
+
+``` bash
+git clone https://github.com/kushal7xn/GetEasy-week3-4.git
+cd GetEasy-week3-4
+git checkout forui
+cd subject-guide
+```
+
+Start PostgreSQL:
+
+``` bash
+docker start subject-guide-db
+```
+
+Backend:
+
+``` bash
 cd backend
-.\venv\Scripts\Activate.ps1
-python -m uvicorn app.main:app --reload
+python -m venv venv
 ```
 
-### Frontend
+Windows:
 
-```powershell
-cd frontend
+``` powershell
+.env\Scripts\Activate.ps1
+```
+
+Then:
+
+``` bash
+pip install -r requirements.txt
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+Frontend in a new terminal:
+
+``` bash
+cd subject-guide/frontend
+npm install
 npm run dev
 ```
 
----
+Open:
 
-## Project Status
+``` text
+http://localhost:3000
+```
 
-### Completed
+## GetEasy
 
-- [x] FastAPI backend
-- [x] Next.js frontend
-- [x] PostgreSQL integration
-- [x] PDF processing
-- [x] DOCX processing
-- [x] PPTX processing
-- [x] Multiple file upload
-- [x] Folder upload
-- [x] Automatic subject detection
-- [x] Automatic subject organization
-- [x] Text chunking
-- [x] Sentence Transformer embeddings
-- [x] ChromaDB vector storage
-- [x] Semantic search
-- [x] AI question answering
-- [x] Source document identification
-- [x] Markdown response rendering
-
-### Planned
-
-- [ ] Chapter-level organization
-- [ ] Question bank generation
-- [ ] Practice question generation
-- [ ] Answer evaluation
-- [ ] Learning progression
-- [ ] Topic mastery tracking
-- [ ] Assessment generation
-- [ ] Cross-document learning
-- [ ] Personalized learning paths
-
----
-
-## Contributors
-
-- **Kushal Reddy**
+Upload your materials → Understand topics → Solve questions → Follow
+learning paths → Track progress → Export your study guide.
