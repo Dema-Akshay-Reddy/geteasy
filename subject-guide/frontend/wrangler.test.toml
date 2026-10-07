@@ -1,0 +1,7 @@
+name = "geteasy-forui-frontend"
+main = "cf-worker.js"
+compatibility_date = "2026-05-03"
+
+[assets]
+directory = "./out"
+binding = "ASSETS"

@@ -1,0 +1,13 @@
+{
+  "entrypoint": "cf-worker.js",
+  "compatibilityDate": "2026-10-07",
+  "modules": [
+    {
+      "name": "cf-worker.js",
+      "type": "esm",
+      "path": "./cf-worker.js"
+    }
+  ],
+  "assetsDirectory": "./out",
+  "spa": false
+}

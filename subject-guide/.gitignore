@@ -63,3 +63,6 @@ Thumbs.db
 # =========================
 
 .vscode/
+
+# Cloudflare wrangler cache
+.wrangler/

@@ -21,7 +21,7 @@ from app.config import settings
 # ChromaDB SQLite seq_id compatibility patch
 # ============================================================
 
-_orig_decode_seq_id = chroma_sqlite._decode_seq_id
+_orig_decode_seq_id = getattr(chroma_sqlite, "_decode_seq_id", None)
 
 
 def _decode_seq_id(seq_id_bytes):
@@ -48,8 +48,10 @@ def _decode_seq_id(seq_id_bytes):
     return _orig_decode_seq_id(seq_id_bytes)
 
 
-# Monkey-patch Chroma's decoder
-chroma_sqlite._decode_seq_id = _decode_seq_id
+# Monkey-patch Chroma's decoder (only exists on chroma 0.5.x;
+# the patch is unnecessary on newer versions where the attribute is absent)
+if _orig_decode_seq_id is not None:
+    chroma_sqlite._decode_seq_id = _decode_seq_id
 
 
 # ============================================================
@@ -64,10 +66,16 @@ _client = chromadb.PersistentClient(
 # ============================================================
 # Embedding Model
 # ============================================================
-
-_embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
-    model_name="all-MiniLM-L6-v2"
-)
+# Prefer sentence-transformers (torch) when installed. On small
+# free-tier hosts (e.g. Render 512MB) torch does not fit, so fall
+# back to chromadb's DefaultEmbeddingFunction — the same
+# all-MiniLM-L6-v2 model running via ONNX (384 dims, no torch).
+try:
+    _embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
+        model_name="all-MiniLM-L6-v2"
+    )
+except Exception:  # sentence-transformers/torch not installed
+    _embedding_fn = embedding_functions.DefaultEmbeddingFunction()
 
 
 # ============================================================
